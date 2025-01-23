@@ -276,6 +276,18 @@ function efi_pagamentos_field_callback($args) {
         echo "<input type='text' id='$field' name='efi_pagamentos_options[$field]' value='$value' class='regular-text' />";
     }
 }
+function efi_pagamentos_admin_notices() {
+    if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
+        add_settings_error(
+            'efi_pagamentos_messages', 
+            'efi_pagamentos_success', 
+            'Configurações salvas com sucesso!', 
+            'updated' 
+        );
+    }
+    settings_errors('efi_pagamentos_messages');
+}
+add_action('admin_notices', 'efi_pagamentos_admin_notices');
 // Gerencia o upload do certificado de produção
 function efi_upload_patch_certificate($options) {
     return efi_handle_file_upload($options, 'patch_certificate');
