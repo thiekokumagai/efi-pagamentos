@@ -2,14 +2,14 @@
 <?php 
     
     if (get_field('pago',$_GET['emissao_entidade_id'])) { 
-    $redirecionar_para = '/?post_type=emissao_entidade&p=' . $_GET['emissao_entidade_id'].'&evento='.$_GET['evento']; 
-    wp_redirect(home_url('/' . $redirecionar_para)); 
-    
+        $redirecionar_para = '/?post_type=emissao_entidade&p=' . $_GET['emissao_entidade_id'].'&evento='.$_GET['evento']; 
+        wp_redirect(home_url('/' . $redirecionar_para)); 
     }
-    ?>
+?>
 
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,27 +20,26 @@
           cursor: pointer;
         }
       </style>
-      <?php wp_head(); 
-      
-      ?>
+      <?php wp_head(); ?>
 </head>
 <body>
     <div class="container py-5">
-        <div class="row">
-            <!-- Detalhes do Pedido -->
-            <div class="col-md-4">
+        <div class="row d-flex align-items-center justify-content-center">
+        <div class="col-md-6">
+
+            <h5 class="mb-3 fw-bold text-center">Pagamento Compensação</h5>
+            
+            <div class="col-md-12 text-center mb-3">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title fw-bold">Detalhes da compesação</h5>
-                        <p class="mb-2">Total da compensação: <strong>R$ <?php echo number_format((float) get_field('valor_compensacao',$_GET['emissao_entidade_id']), 2, ",", ".");?></strong></p>
+                        <p class="mb-0">Total: <strong>R$ <?php echo number_format((float) get_field('valor_compensacao',$_GET['emissao_entidade_id']), 2, ",", ".");?></strong></p>
                         <p class="text-success mb-0">Você está em um ambiente seguro.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Pagamento -->
-            <div class="col-md-8">
-                <h5 class="mb-4 fw-bold">Pagamento compensação</h5>
+            <div class="col-md-12">
                 <?php 
                 if(!empty(get_field('txid',$_GET['emissao_entidade_id'])) && $_GET['pix']==1){                    
                     ?>
@@ -138,7 +137,7 @@
                         </svg>
                       </div>
                   
-                      <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                      <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
                         <div>
                             <?php echo do_shortcode('[formulario_pagamento_cartao]');?>
                         </div>
@@ -162,7 +161,11 @@
                 }
                 ?>
             </div>
+            <div class="col-md-12 mt-4 text-center">
+                <img width="150" src="https://sistema.compensei.com/wp-content/themes/carbonometro/new_assets/img/compensei_logo_sistema.png" class="img-fluid">
+            </div>
         </div>
+    </div>
     </div>
     <?php wp_footer(); ?>
     
