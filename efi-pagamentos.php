@@ -1,10 +1,10 @@
 <?php
- $autoload = realpath(__DIR__ . '/vendor/autoload.php');
- if (!file_exists($autoload)) {
-     die("Autoload file not found or on path <code>$autoload</code>.");
- }
- require_once $autoload;
- use Efi\Exception\EfiException;
+$autoload = realpath(__DIR__ . '/vendor/autoload.php');
+if (!file_exists($autoload)) {
+    die("Autoload file not found or on path <code>$autoload</code>.");
+}
+require_once $autoload;
+use Efi\Exception\EfiException;
 use Efi\EfiPay;
 /*
 Plugin Name: EFI Pagamentos
@@ -12,11 +12,7 @@ Description: Plugin para configurar os campos de pagamento EFI.
 Version: 1.0
 Author: Thieko Kumagai
 */
-
-// Evitar acesso direto ao arquivo
 defined('ABSPATH') || exit;
-
-// Criar menu no painel administrativo
 function efi_pagamentos_create_menu() {
     add_menu_page(
         'EFI Pagamentos',
@@ -28,14 +24,11 @@ function efi_pagamentos_create_menu() {
     );
 }
 add_action('admin_menu', 'efi_pagamentos_create_menu');
-
-// Permitir upload de arquivos .p12
 function efi_pagamentos_allow_p12_upload($mime_types) {
     $mime_types['p12'] = 'application/x-pkcs12';
     return $mime_types;
 }
 add_filter('upload_mimes', 'efi_pagamentos_allow_p12_upload');
-
 // Página de configurações do plugin
 function efi_pagamentos_settings_page() {
     ?>
@@ -43,12 +36,10 @@ function efi_pagamentos_settings_page() {
         <h1>Configurações EFI Pagamentos</h1>
         <button id="create-webhook-btn" style="margin-top:10px;" class="button">Criar Webhook</button>
         <div id="webhook-status" style="margin-top:10px;"></div>
-
         <script>
             document.getElementById('create-webhook-btn').addEventListener('click', function() {
                 const statusDiv = document.getElementById('webhook-status');
                 statusDiv.innerHTML = 'Criando o Webhook...';
-
                 fetch('<?php echo esc_url(rest_url('efi/v1/criar-webhook')); ?>')
                     .then(response => response.json())
                     .then(data => {
@@ -80,6 +71,7 @@ function efi_pagamentos_settings_page() {
                     })
                     .catch(error => {
                         statusDiv.innerHTML = 'Erro: ' + error.message;
+
                     });
             });
         </script>
@@ -89,24 +81,20 @@ function efi_pagamentos_settings_page() {
             do_settings_sections('efi-pagamentos');
             submit_button();
             ?>
-        </form>
-        
+        </form>   
     </div>
     <?php
 }
-
 // Registrar configurações
 function efi_pagamentos_settings_init() {
     register_setting('efi_pagamentos_settings', 'efi_pagamentos_options');
-
     add_settings_section(
         'efi_post_section',
         'Vínculo com post',
         null,
         'efi-pagamentos'
     );
-
-    $post_fields = [             
+    $post_fields = [        
         'tipo_post' => 'Tipo de Post',
         'data_criacao' => 'Data Criação',
         'forma_pagamento'=> 'Forma de Pagamento',
@@ -120,7 +108,6 @@ function efi_pagamentos_settings_init() {
         'qr_code'=>'QR Code (Pix)',
         'txid'=>'Identificador (Pix)'
     ];
-
     foreach ($post_fields as $field => $label) {
         add_settings_field(
             $field,
@@ -138,9 +125,7 @@ function efi_pagamentos_settings_init() {
         null,
         'efi-pagamentos'
     );
-
-    $fields = [
-             
+    $fields = [   
         'client_id' => 'Client ID Produção',
         'client_secret' => 'Client Secret Produção',
         'client_id_homologacao' => 'Client ID Homologação',
@@ -151,7 +136,6 @@ function efi_pagamentos_settings_init() {
         'webhook'=>'Webhook',
         'patch_certificate_homologacao_save' => '',
     ];
-
     foreach ($fields as $field => $label) {
         add_settings_field(
             $field,
@@ -162,7 +146,6 @@ function efi_pagamentos_settings_init() {
             ['label_for' => $field]
         );
     }
-
     // Seção de Configurações do Pix
     add_settings_section(
         'efi_pagamentos_pix_section',
@@ -170,15 +153,12 @@ function efi_pagamentos_settings_init() {
         null,
         'efi-pagamentos'
     );
-
     $pix_fields = [
         'pix' => 'Chave Pix',
         'patch_certificate' => 'Certificado Pix Produção',
         'patch_certificate_homologacao' => 'Certificado Pix Homologação',
-        'patch_certificate_save' => ''
-        
+        'patch_certificate_save' => ''     
     ];
-
     foreach ($pix_fields as $field => $label) {
         add_settings_field(
             $field,
@@ -191,7 +171,6 @@ function efi_pagamentos_settings_init() {
     }
 }
 add_action('admin_init', 'efi_pagamentos_settings_init');
-
 // Callback para renderizar os campos 
 function efi_pagamentos_field_callback($args) {
     $options = get_option('efi_pagamentos_options', []);
@@ -213,12 +192,10 @@ function efi_pagamentos_field_callback($args) {
         } else {
             echo "<input type='file' id='$field' name='$field' value='$value' />";
         }
-
         echo "
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const deleteButtons = document.querySelectorAll('.delete-file');
-                
+                const deleteButtons = document.querySelectorAll('.delete-file');  
                 deleteButtons.forEach(button => {
                     if (!button.dataset.listenerAdded) {
                         button.addEventListener('click', function () {
@@ -255,7 +232,7 @@ function efi_pagamentos_field_callback($args) {
         ";
     } elseif ($field === 'environment') {
         $value = isset($options[$field]) ? $options[$field] : 'producao';
-        echo "<select id='$field' name='efi_pagamentos_options[$field]'>                
+        echo "<select id='$field' name='efi_pagamentos_options[$field]'>  
                 <option value='homologacao' " . selected($value, 'homologacao', false) . ">Homologação</option>
                 <option value='producao' " . selected($value, 'producao', false) . ">Produção</option>
               </select>";
@@ -276,28 +253,14 @@ function efi_pagamentos_field_callback($args) {
         echo "<input type='text' id='$field' name='efi_pagamentos_options[$field]' value='$value' class='regular-text' />";
     }
 }
-function efi_pagamentos_admin_notices() {
-    if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
-        add_settings_error(
-            'efi_pagamentos_messages', 
-            'efi_pagamentos_success', 
-            'Configurações salvas com sucesso!', 
-            'updated' 
-        );
-    }
-    settings_errors('efi_pagamentos_messages');
-}
-add_action('admin_notices', 'efi_pagamentos_admin_notices');
 // Gerencia o upload do certificado de produção
 function efi_upload_patch_certificate($options) {
     return efi_handle_file_upload($options, 'patch_certificate');
 }
-
 // Gerencia o upload do certificado de homologação
 function efi_upload_patch_certificate_homologacao($options) {
     return efi_handle_file_upload($options, 'patch_certificate_homologacao');
 }
-
 // Função genérica para lidar com o upload de arquivos
 function efi_handle_file_upload($options, $field) {
     if (isset($_FILES[$field]) && $_FILES[$field]['size'] > 0 && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
@@ -305,7 +268,6 @@ function efi_handle_file_upload($options, $field) {
         $file_info = pathinfo($_FILES[$field]['name']);
         $extension = $file_info['extension'] ?? '';
         $new_filename = "{$field}.{$extension}";
-
         // Realiza o upload do arquivo
         $upload = wp_upload_bits($new_filename, null, file_get_contents($_FILES[$field]['tmp_name']));
         if (!$upload['error']) {
@@ -321,73 +283,69 @@ function efi_handle_file_upload($options, $field) {
             $options[$field] = $options[$field.'_save'];  // Caso o valor não exista, mantém o valor vazio
         }
     }
-
     return $options;
-}
 
-// Atualiza as opções no banco de dados
+}
+function efi_pagamentos_admin_notices() {
+    if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
+        add_settings_error(
+            'efi_pagamentos_messages', 
+            'efi_pagamentos_success', 
+            'Configurações salvas com sucesso!', 
+            'updated' 
+        );
+    }
+    settings_errors('efi_pagamentos_messages');
+}
+add_action('admin_notices', 'efi_pagamentos_admin_notices');
 function efi_pagamentos_save_uploaded_file($options) {
     $options = efi_upload_patch_certificate($options);
     $options = efi_upload_patch_certificate_homologacao($options);
     return $options;
 }
 add_filter('pre_update_option_efi_pagamentos_options', 'efi_pagamentos_save_uploaded_file');
-
-
 // Função para excluir arquivos
 function efi_pagamentos_delete_file() {
     if (!current_user_can('manage_options')) {
         wp_send_json_error(['message' => 'Permissão negada.']);
     }
-
     $field = isset($_POST['field']) ? sanitize_text_field($_POST['field']) : '';
     if (!$field) {
         wp_send_json_error(['message' => 'Campo `field` não recebido.']);
     }
-
     $options = get_option('efi_pagamentos_options', []);
     if (!isset($options[$field])) {
         wp_send_json_error(['message' => 'Campo não encontrado nas opções.']);
     }
-
     $file_path = str_replace(get_site_url() . '/', ABSPATH, $options[$field]);
     if (file_exists($file_path)) unlink($file_path);
-
     unset($options[$field]);
     unset($options[$field.'_save']);
-
     if (update_option('efi_pagamentos_options', $options)) {
         wp_send_json_success(['message' => 'Arquivo excluído com sucesso.']);
     } else {
         wp_send_json_error(['message' => 'Erro ao atualizar as opções no banco de dados.']);
     }
 }
-
 add_action('wp_ajax_delete_file', 'efi_pagamentos_delete_file');
-
-
 function efi_pagamentos_save_webhook_url() {
     if (!current_user_can('manage_options')) {
         wp_send_json_error(['message' => 'Permissão negada.']);
     }
-
     $webhook_url = isset($_POST['webhook_url']) ? sanitize_text_field($_POST['webhook_url']) : '';
     if (!$webhook_url) {
         wp_send_json_error(['message' => 'URL do Webhook não recebida.']);
     }
-
     $options = get_option('efi_pagamentos_options', []);
     $options['webhook'] = $webhook_url;
-
     if (update_option('efi_pagamentos_options', $options)) {
         wp_send_json_success(['message' => 'URL do Webhook salva com sucesso.']);
     } else {
         wp_send_json_error(['message' => 'Erro ao salvar a URL do Webhook.']);
-    }
-    
+    } 
+
 }
 add_action('wp_ajax_save_webhook_url', 'efi_pagamentos_save_webhook_url');
-
 add_action('rest_api_init', function () {
     error_log('rest_api_init chamado!');
     register_rest_route('efi/v1', '/criar-webhook', [
@@ -399,17 +357,14 @@ add_action('rest_api_init', function () {
         'callback' => 'efi_webhook_callback',
     ]);
 });
-
 function efi_get_options() {
     $options_cadastrados = get_option('efi_pagamentos_options', []);
     $environment = '';
     $sandbox = false;
-
     if ($options_cadastrados['environment'] == 'homologacao') {
         $environment = '_' . $options_cadastrados['environment'];
         $sandbox = true;
     }
-
     $options = [
         "client_id" => $options_cadastrados['client_id' . $environment],
         "client_secret" => $options_cadastrados['client_secret' . $environment],
@@ -417,28 +372,20 @@ function efi_get_options() {
         "sandbox" => $sandbox,
         "timeout" => $options_cadastrados['timeout']
     ];
-
     $chave_pix = $options_cadastrados['pix'];
-
     return [$options, $chave_pix, $options_cadastrados];
-}
-
-function efi_criar_webhook_callback(WP_REST_Request $request) {
+}function efi_criar_webhook_callback(WP_REST_Request $request) {
     error_log('Rota /criar-webhook!');
-
     list($options, $chave_pix, $options_cadastrados) = efi_get_options();
     $options["headers"] = [
         "x-skip-mtls-checking" => "true",
     ];
-
     $params = [
         "chave" => $chave_pix
     ];
-
     $body = [
         "webhookUrl" => get_bloginfo('url') . "/wp-json/efi/v1/webhook?ignorar="
     ];
-
     try {
         $api = new EfiPay($options);
         $response = $api->pixConfigWebhook($params, $body);
@@ -450,7 +397,6 @@ function efi_criar_webhook_callback(WP_REST_Request $request) {
                 'info' => 'Configuração do webhook foi realizada com sucesso.',
             ],
         ], 200);
-
     } catch (EfiException $e) {
         return new WP_REST_Response([
             'success' => false,
@@ -461,7 +407,6 @@ function efi_criar_webhook_callback(WP_REST_Request $request) {
                 'description' => $e->errorDescription,
             ],
         ], 500);
-
     } catch (Exception $e) {
         return new WP_REST_Response([
             'success' => false,
@@ -469,18 +414,17 @@ function efi_criar_webhook_callback(WP_REST_Request $request) {
             'error' => [
                 'message' => $e->getMessage(),
             ],
+
         ], 500);
     }
 }
-
 function efi_webhook_callback(WP_REST_Request $request) {
     error_log('Rota /webhook chamada!');
-    list($options, $chave_pix, $options_cadastrados) = efi_get_options();   
+    list($options, $chave_pix, $options_cadastrados) = efi_get_options();  
     $dados_webhook = file_get_contents("php://input");
     $dados_webhook = json_decode($dados_webhook);
     $body_email = "<p style='text-align:center;'><strong>COMPROVANTE DE COMPENSAÇÃO</strong><br><strong>Status:</strong> Pago</p>";
-    $subject = "Comprovante de Compensação";
-    
+    $subject = "Comprovante de Compensação"; 
     if (isset($_POST["notification"])) {
         $params = [
             "token" => $_POST["notification"]
@@ -506,6 +450,7 @@ function efi_webhook_callback(WP_REST_Request $request) {
                         'value' => $charge_id
                     )
                 )
+
             ));
             if ($wp_query->have_posts()) :
                 while ($wp_query->have_posts()) : $wp_query->the_post();
@@ -513,7 +458,7 @@ function efi_webhook_callback(WP_REST_Request $request) {
                 endwhile;
             endif;
             wp_reset_query();
-            if ($statusAtual == 'paid' || $statusAtual == 'approved') {                            
+            if ($statusAtual == 'paid' || $statusAtual == 'approved') { 
                 update_post_meta($post_id, $options_cadastrados['status'], $statusAtual);
                 update_post_meta($post_id, $options_cadastrados['data_pagamento'], current_time('Y-m-d'));
                 update_post_meta($post_id, $options_cadastrados['pago'], true);
@@ -523,7 +468,7 @@ function efi_webhook_callback(WP_REST_Request $request) {
             }else{
                 update_post_meta($post_id, $options_cadastrados['status'], $statusAtual);
             }
-        }        
+        }  
     }else if (isset($dados_webhook->pix)) {
         foreach ($dados_webhook->pix as $pix) {
             $params = [
@@ -569,11 +514,11 @@ function exibir_formulario_pagamento_cartao() {
     ?>
     <form method="post" class="formulario">
         <div class="mb-3">
-            <label for="cartao_nome" class="form-label fw-bold">Nome no cartão</label>
+            <label for="cartao_nome" class="form-label fw-bold">Nome no Cartão</label>
             <input type="text" class="form-control" id="cartao_nome" name="cardholder" required placeholder="Nome completo">
         </div>
         <div class="mb-3">
-            <label for="cartao_numero" class="form-label fw-bold">Número do cartão</label>
+            <label for="cartao_numero" class="form-label fw-bold">Número do Cartão</label>
             <input type="text" class="form-control" id="cartao_numero" name="card_number" required placeholder="0000 0000 0000 0000">
         </div>
         <div class="row mb-3">
@@ -598,7 +543,7 @@ function exibir_formulario_pagamento_cartao() {
             <div class="col-md-6">
                 <label for="cpf" class="form-label fw-bold">CPF</label>
                 <input type="text" name="cartao_cpf" class="form-control" id="cartao_cpf" value="007.534.481-57" required="" inputmode="text" placeholder="Número do documento">
-            </div>        
+            </div> 
             <div class="col-md-6" >
                 <label class="form-label fw-bold" for="cpf">Telefone</label>
                 <input required="" name="telefone" type="text" class="form-control" id="telefone" placeholder="(00) 0 0000-0000" value="67992859942">
@@ -635,7 +580,6 @@ function exibir_formulario_pagamento_cartao() {
         <input type="hidden" name="metodo_pagamento" value="cartao"/>
         <button type="button" class="btn btn-primary w-100 btn_pagar_cartao">Efetuar pagamento</button>
     </form>
-
     <script src="https://cdn.jsdelivr.net/gh/efipay/js-payment-token-efi/dist/payment-token-efi.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -644,7 +588,6 @@ function exibir_formulario_pagamento_cartao() {
             function gerarToken(cartao_numero, cvv, expirationMonth, expirationYear) {
                 const originalText = $('.btn_pagar_cartao').text();
                 $('.btn_pagar_cartao').text('Carregando...').prop('disabled', true);
-
                 try {
                     EfiJs.CreditCard.setCardNumber(cartao_numero)
                         .verifyCardBrand()
@@ -664,7 +607,6 @@ function exibir_formulario_pagamento_cartao() {
                                     .then(data => {
                                         const payment_token = data.payment_token;
                                         const card_mask = data.card_mask;
-
                                         const form = $(".formulario");
                                         form.append('<input type="hidden" name="payment_token" value="' + payment_token + '">');
                                         form.append('<input type="hidden" name="card_mask" value="' + card_mask + '">');
@@ -688,13 +630,11 @@ function exibir_formulario_pagamento_cartao() {
                     $('.btn_pagar_cartao').text(originalText).prop('disabled', false);
                 }
             }
-
             $(document).ready(function () {
                 $('.btn_pagar_cartao').click(function() {
                     const form = $(".formulario");
                     const isValid = form[0].checkValidity();
                     form.addClass('was-validated');
-
                     if (isValid) {
                         gerarToken(
                             $('#cartao_numero').val().replace(/\s/g, ""),
@@ -712,14 +652,10 @@ function exibir_formulario_pagamento_cartao() {
     <?php
     return ob_get_clean();
 }
-
-
 function shortcode_formulario_pagamento_cartao() {
     return exibir_formulario_pagamento_cartao(); // Chama a função que retorna o HTML do formulário
 }
 add_shortcode('formulario_pagamento_cartao', 'shortcode_formulario_pagamento_cartao');
-
-
 function exibir_formulario_pagamento_pix() {
     ob_start();
     $id = $_GET['emissao_entidade_id'];
@@ -738,7 +674,7 @@ function exibir_formulario_pagamento_pix() {
     </form>
     <script>
         jQuery.noConflict();
-        (function($) {            
+        (function($) {
             $(document).ready(function () {
                 $('.btn_pagar_pix').click(function() {
                     const originalText = $('.btn_pagar_pix').text();
@@ -759,26 +695,30 @@ function exibir_formulario_pagamento_pix() {
     <?php
     return ob_get_clean();
 }
-
 function shortcode_formulario_pagamento_pix() {
     return exibir_formulario_pagamento_pix(); // Chama a função que retorna o HTML do formulário
 }
 add_shortcode('formulario_pagamento_pix', 'shortcode_formulario_pagamento_pix');
-
 function processar_pagamento_cartao() {
     list($options, $chave_pix, $options_cadastrados) = efi_get_options();  
     $post_id =$_GET['emissao_entidade_id'];
     $valor = get_field($options_cadastrados['valor'],$post_id);
     $valor_inteiro = str_replace(".", "", $valor);
-    
     $items = [
         [
             "name" => get_the_title($post_id),
             "amount" => 1,
-            "value" => (int) $valor_inteiro
+            "value" => (int) $valor_inteiro,
+            "marketplace" => [
+                "repasses" => [
+                    [
+                        "payee_code" => "95cfce8b88968fdaceca52f8cd6e4979",
+                        "percentage" => 100 
+                    ]
+                ]
+            ]
         ]
-    ];
-    
+    ];  
     $paymentToken = $_REQUEST['payment_token']; 
     $customer = [
         "name" => $_REQUEST['cardholder'],
@@ -786,9 +726,7 @@ function processar_pagamento_cartao() {
         "phone_number" => preg_replace('/[^0-9]/', '', $_REQUEST['telefone']),
         "email" => get_field('e-mail',$post_id),
         "birth" => DateTime::createFromFormat('d/m/Y', $_REQUEST['nascimento'])->format('Y-m-d')
-    ];
-    
-    //$current_user->user_email
+    ]; 
     $billingAddress = [
         "street" =>  $_REQUEST['rua'], 
         "number" => preg_replace('/[^0-9]/', '', $_REQUEST['numero']),
@@ -809,8 +747,7 @@ function processar_pagamento_cartao() {
         "metadata" => [
             "notification_url" => get_bloginfo('url') . "/wp-json/efi/v1/webhook"
         ]
-    ];
-    
+    ];  
     try {
         $api = new EfiPay($options);
         $response = $api->createOneStepCharge($params = [], $body);
@@ -826,12 +763,13 @@ function processar_pagamento_cartao() {
             return 'Erro pagamento não efetuado';
         }
     } catch (EfiException $e) {
-        return 'Erro: ' . $e->error . ' - ' . $e->errorDescription;          
+        return 'Erro: ' . $e->error . ' - ' . $e->errorDescription;  
     } catch (Exception $e) {
         return 'Erro desconhecido: ' . $e->getMessage();
-    }
-}
 
+    }
+
+}
 function processar_pagamento_pix() {    
     list($options, $chave_pix, $options_cadastrados) = efi_get_options();  
     $valor = get_field($options_cadastrados['valor'],$_GET['emissao_entidade_id']);
@@ -859,15 +797,13 @@ function processar_pagamento_pix() {
     ];
     try {
         $api = new EfiPay($options);
-        $pix = $api->pixCreateImmediateCharge($params = [], $body); // Using this function the txid will be generated automatically by Efí API
-        
+        $pix = $api->pixCreateImmediateCharge($params = [], $body);  
         if (!empty($pix['txid'])) {
             $data = new DateTime($pix['calendario']['criacao']);
             $date_of_expiration = $data->add(new DateInterval('PT'.$pix['calendario']['expiracao'].'S'));
             $params = [
                 'id' => $pix['loc']['id']
             ];
-            // Gera QRCode
             $qrcode = $api->pixGenerateQRCode($params);
             $response = [
                 "code" => 200,
@@ -887,7 +823,6 @@ function processar_pagamento_pix() {
             wp_redirect(home_url($redirect_url));
             exit();
         } else {
-            // Caso não tenha txid, retorna erro
             return 'Erro ao tentar criar pix. Tente novamente.';
         }
     } catch (EfiException $e) {
@@ -896,12 +831,10 @@ function processar_pagamento_pix() {
         return 'Erro desconhecido: ' . $e->getMessage();
     }
 }
-
 function processar_pagamento() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['metodo_pagamento'])) {
         $metodo = sanitize_text_field($_POST['metodo_pagamento']);
-        $resultado = '';
-        
+        $resultado = '';     
         if ($metodo === 'cartao') {
             $resultado = processar_pagamento_cartao();
         } elseif ($metodo === 'pix') {
@@ -913,27 +846,22 @@ function processar_pagamento() {
     }
 }
 add_action('init', 'processar_pagamento');
-
 function inputmask_enqueue_script() {
     $input_mask_js_path = plugin_dir_url(__FILE__) . 'js/jquery.inputmask.min.js';
     wp_enqueue_script(
         'jquery-inputmask', 
         $input_mask_js_path,
-        ['jquery'], // Dependência do jQuery
+        ['jquery'], 
         '5.0.8',
-        true // Carregar no final do body para otimizar desempenho
+        true 
     );
     $custom_js_path = plugin_dir_url(__FILE__) . 'js/custom.js';
-
-    // Adiciona o script custom.js
     wp_enqueue_script(
         'custom-js',
         $custom_js_path,
-        ['jquery-inputmask'], // Dependência do jQuery
+        ['jquery-inputmask'],
         '1.0',
-        true // Carregar no final do body
+        true 
     );
 }
-
-// Hook para carregar o script no frontend
 add_action('wp_enqueue_scripts', 'inputmask_enqueue_script');
